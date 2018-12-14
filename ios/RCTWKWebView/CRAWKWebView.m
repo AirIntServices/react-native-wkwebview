@@ -471,13 +471,11 @@ RCT_NOT_IMPLEMENTED(- (instancetype)initWithCoder:(NSCoder *)aDecoder)
   
   BOOL isJSNavigation = [scheme isEqualToString:RCTJSNavigationScheme];
   
-  // handle mailto and tel schemes
-  if ([scheme isEqualToString:@"mailto"] || [scheme isEqualToString:@"tel"]) {
-    if ([app canOpenURL:url]) {
-      [app openURL:url];
-      decisionHandler(WKNavigationActionPolicyCancel);
-      return;
-    }
+  // handle custom schemes
+  if ([app canOpenURL:url]) {
+    decisionHandler(WKNavigationActionPolicyAllow);
+    [app openURL:url];
+    return;
   }
   
   // skip this for the JS Navigation handler
