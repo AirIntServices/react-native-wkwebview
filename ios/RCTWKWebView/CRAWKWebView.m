@@ -470,12 +470,27 @@ RCT_NOT_IMPLEMENTED(- (instancetype)initWithCoder:(NSCoder *)aDecoder)
   NSString* scheme = url.scheme;
   
   BOOL isJSNavigation = [scheme isEqualToString:RCTJSNavigationScheme];
+
+  // Get the list of custom schemes that should be handled from Info.plist
   
-  // handle custom schemes
-  if ([app canOpenURL:url]) {
-    decisionHandler(WKNavigationActionPolicyAllow);
-    [app openURL:url];
-    return;
+  NSArray* urlTypes = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleURLTypes"];
+  
+  if(urlTypes != nil) {
+    NSMutableArray* customSchemes = [NSMutableArray array];
+    
+    for (NSDictionary* urlType in urlTypes) {
+      if([urlType.allKeys containsObject:@"CFBundleURLSchemes"]) {
+        [customSchemes addObjectsFromArray:urlType[@"CFBundleURLSchemes"]];
+      }
+    }
+    
+    // handle custom schemes, other schemes like https will go through the normal process below
+    
+    if([customSchemes containsObject:scheme] && [app canOpenURL:url]) {
+      decisionHandler(WKNavigationActionPolicyAllow);
+      [app openURL:url];
+      return;
+    }
   }
   
   // skip this for the JS Navigation handler
